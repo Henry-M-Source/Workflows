@@ -1,0 +1,1104 @@
+{
+  "name": "Payment Reminder System",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -864,
+        -32
+      ],
+      "id": "7aa853dd-104e-4068-962c-b3e693657534",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appF80TeI8a2bPZNH",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbly61uJA2s5xd3tn",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH/tbly61uJA2s5xd3tn"
+        },
+        "filterByFormula": "OR({Status} = \"Unpaid\", {Status} = \"Reminded 7 Days\", {Status} = \"Reminded 3 Days\", {Status} = \"Reminded Today\")",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        -32
+      ],
+      "id": "97baa15d-957d-4c05-8b83-298577f487e9",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qFU0qbXReBtwhBPE",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aa464d33-a560-40fd-8e82-575892b01e96",
+              "leftValue": "={{ Math.round(DateTime.fromISO($json.fields[\"Due Date\"]).diff($now, 'days').days) }}",
+              "rightValue": 6.5,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "9a548aa7-920c-4f9c-a2b3-39c0f646d4a8",
+              "leftValue": "={{ Math.round(DateTime.fromISO($json.fields[\"Due Date\"]).diff($now, 'days').days) }}",
+              "rightValue": 7.5,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -448,
+        -32
+      ],
+      "id": "5fcc3e0f-e48a-42d4-b195-6aa7b614ef63",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "henrynjorogey@outlook.com",
+        "toEmail": "={{ $json.fields.Email }}",
+        "subject": "=Payment Reminder - {{ $json.fields[\"Invoice Number\"] }} due in 7 days",
+        "emailFormat": "text",
+        "text": "=Hi {{ $json.fields[\"Client Name\"] }},\n\nThis is a friendly reminder that invoice {{ $json.fields[\"Invoice Number\"] }} \nfor ${{ $json.fields.Balance }} is due on {{ $json.fields[\"Due Date\"] }}.\n\nPlease arrange payment at your earliest convenience.\n\nThank you.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        -128
+      ],
+      "id": "c706940d-80e0-44ce-8949-eea56ec9afd0",
+      "name": "Send an Email",
+      "webhookId": "e9c1e3f0-2865-4a12-9cc5-1879c1a3db74",
+      "credentials": {
+        "smtp": {
+          "id": "ZXkuFcMJw8tXqQDK",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "henrynjorogey@outlook.com",
+        "toEmail": "={{ $json.fields.Email }}",
+        "subject": "=Payment Reminder - {{ $json.fields[\"Invoice Number\"] }} due in 3 days",
+        "emailFormat": "text",
+        "text": "=Hi {{ $json.fields[\"Client Name\"] }},\n\nThis is a friendly reminder that invoice {{ $json.fields[\"Invoice Number\"] }} \nfor ${{ $json.fields.Balance }} is due on {{ $json.fields[\"Due Date\"] }}.\n\nPlease arrange payment at your earliest convenience.\n\nThank you.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        -64
+      ],
+      "id": "3276cd09-de76-45ef-907f-ca9e3c83e060",
+      "name": "Send an Email1",
+      "webhookId": "b9ec4334-9455-4053-a549-4318035348ef",
+      "credentials": {
+        "smtp": {
+          "id": "ZXkuFcMJw8tXqQDK",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "henrynjorogey@outlook.com",
+        "toEmail": "={{ $json.fields.Email }}",
+        "subject": "=Payment Reminder - {{ $json.fields[\"Invoice Number\"] }} due today",
+        "emailFormat": "text",
+        "text": "=Hi {{ $json.fields[\"Client Name\"] }},\n\nThis is a FINAL NOTICE that invoice {{ $json.fields[\"Invoice Number\"] }} \nfor ${{ $json.fields.Balance }} is due on {{ $json.fields[\"Due Date\"] }}.\n\nPlease arrange payment to avoid being in breach of contract and legal action.\n\nThank you.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        -32,
+        128
+      ],
+      "id": "8ea1f8bd-a8e0-4a86-836c-51ce57aaedca",
+      "name": "Send an Email2",
+      "webhookId": "e97eb966-6fb5-485d-a56d-1fddeefaa5c4",
+      "credentials": {
+        "smtp": {
+          "id": "ZXkuFcMJw8tXqQDK",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appF80TeI8a2bPZNH",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbly61uJA2s5xd3tn",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH/tbly61uJA2s5xd3tn"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Reminded 3 Days",
+            "id": "={{ $('Search records').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Balance",
+              "displayName": "Balance",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Unpaid",
+                  "value": "Unpaid"
+                },
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Reminded 7 Days",
+                  "value": "Reminded 7 Days"
+                },
+                {
+                  "name": "Reminded 3 Days",
+                  "value": "Reminded 3 Days"
+                },
+                {
+                  "name": "Reminded Today",
+                  "value": "Reminded Today"
+                },
+                {
+                  "name": "Overdue",
+                  "value": "Overdue"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        -64
+      ],
+      "id": "464fc4f1-92de-4535-919c-9ad17f862250",
+      "name": "3 days status switch",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qFU0qbXReBtwhBPE",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appF80TeI8a2bPZNH",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbly61uJA2s5xd3tn",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH/tbly61uJA2s5xd3tn"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Reminded 7 Days",
+            "id": "={{ $('Search records').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Balance",
+              "displayName": "Balance",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Unpaid",
+                  "value": "Unpaid"
+                },
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Reminded 7 Days",
+                  "value": "Reminded 7 Days"
+                },
+                {
+                  "name": "Reminded 3 Days",
+                  "value": "Reminded 3 Days"
+                },
+                {
+                  "name": "Reminded Today",
+                  "value": "Reminded Today"
+                },
+                {
+                  "name": "Overdue",
+                  "value": "Overdue"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        -224
+      ],
+      "id": "3728479f-2a7c-4b0f-adc9-86a6e14d7b45",
+      "name": "7 days status switch",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qFU0qbXReBtwhBPE",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fa64540c-8e05-4279-98a8-91324cbff70e",
+              "leftValue": "={{ Math.round(DateTime.fromISO($json.fields[\"Due Date\"]).diff($now, 'days').days) }}",
+              "rightValue": 2.5,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "de1087af-65fb-4e40-8624-8b7754653100",
+              "leftValue": "={{ Math.round(DateTime.fromISO($json.fields[\"Due Date\"]).diff($now, 'days').days) }}",
+              "rightValue": 3.5,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        32
+      ],
+      "id": "bb241ab1-ea9d-4c54-879f-ab521b83e3b7",
+      "name": "3 Day Check (IF)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f2cbfa7c-bc9a-4814-b190-91aa195231cb",
+              "leftValue": "={{ Math.round(DateTime.fromISO($json.fields[\"Due Date\"]).diff($now, 'days').days) }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -32,
+        320
+      ],
+      "id": "0c3b0a23-839a-4652-b00a-5eb0e8ab54c9",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "fromEmail": "henrynjorogey@outlook.com",
+        "toEmail": "={{ $json.fields.Email }}",
+        "subject": "=OVERDUE BALANCE Reminder - {{ $json.fields[\"Invoice Number\"] }} ",
+        "emailFormat": "text",
+        "text": "=Hi {{ $json.fields[\"Client Name\"] }},\n\nThis is an overdue notice reminder for invoice {{ $json.fields[\"Invoice Number\"] }} \nfor ${{ $json.fields.Balance }} was due on {{ $json.fields[\"Due Date\"] }}.\n\nPlease arrange prompt payment to avoid litigation for breach of contract.\n\nThank you.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        368
+      ],
+      "id": "50748a9a-9154-4b55-85aa-15621f3490ce",
+      "name": "Send an Email3",
+      "webhookId": "701c8437-09c9-4897-9ccc-98ac6b850d8b",
+      "credentials": {
+        "smtp": {
+          "id": "ZXkuFcMJw8tXqQDK",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appF80TeI8a2bPZNH",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbly61uJA2s5xd3tn",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH/tbly61uJA2s5xd3tn"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Overdue",
+            "id": "={{ $('Search records').item.json.id }}",
+            "Balance": 0
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Balance",
+              "displayName": "Balance",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Unpaid",
+                  "value": "Unpaid"
+                },
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Reminded 7 Days",
+                  "value": "Reminded 7 Days"
+                },
+                {
+                  "name": "Reminded 3 Days",
+                  "value": "Reminded 3 Days"
+                },
+                {
+                  "name": "Reminded Today",
+                  "value": "Reminded Today"
+                },
+                {
+                  "name": "Overdue",
+                  "value": "Overdue"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        352,
+        384
+      ],
+      "id": "bbc6bfaa-a106-43cf-896b-09b4a258d9e2",
+      "name": "Overdue Switch",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qFU0qbXReBtwhBPE",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appF80TeI8a2bPZNH",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbly61uJA2s5xd3tn",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appF80TeI8a2bPZNH/tbly61uJA2s5xd3tn"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Reminded Today",
+            "id": "={{ $('Search records').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Client Name",
+              "displayName": "Client Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Invoice Number",
+              "displayName": "Invoice Number",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Balance",
+              "displayName": "Balance",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Unpaid",
+                  "value": "Unpaid"
+                },
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Reminded 7 Days",
+                  "value": "Reminded 7 Days"
+                },
+                {
+                  "name": "Reminded 3 Days",
+                  "value": "Reminded 3 Days"
+                },
+                {
+                  "name": "Reminded Today",
+                  "value": "Reminded Today"
+                },
+                {
+                  "name": "Overdue",
+                  "value": "Overdue"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Due Date",
+              "displayName": "Due Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        176,
+        128
+      ],
+      "id": "2edb6ed0-3e35-4fb4-b882-efc225982532",
+      "name": "Today status switch",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qFU0qbXReBtwhBPE",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "3 Day Check (IF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email": {
+      "main": [
+        [
+          {
+            "node": "7 days status switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email1": {
+      "main": [
+        [
+          {
+            "node": "3 days status switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email2": {
+      "main": [
+        [
+          {
+            "node": "Today status switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3 Day Check (IF)": {
+      "main": [
+        [
+          {
+            "node": "Send an Email1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send an Email2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send an Email3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send an Email3": {
+      "main": [
+        [
+          {
+            "node": "Overdue Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Africa/Nairobi",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "EhkoDGa5SyZ1Ogu1"
+  },
+  "versionId": "d7c0510f-5cd2-437b-8ad1-dcddcc52bf0b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "321d40cee190efa38f50e69097c3577fafec11930aa4d85c7c80d8677d7341c7"
+  },
+  "id": "WC040kGyO2c8WgfS",
+  "tags": []
+}

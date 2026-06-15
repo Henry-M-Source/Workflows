@@ -1,0 +1,620 @@
+{
+  "name": "Lead Enrichment Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Request a Call Back",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name:",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email Address:",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name:",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "LinkedIn"
+            },
+            {
+              "fieldLabel": "Website"
+            },
+            {
+              "fieldLabel": "Timeline",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Immediately"
+                  },
+                  {
+                    "option": "7 days"
+                  },
+                  {
+                    "option": "14 days"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Message",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -752,
+        -176
+      ],
+      "id": "cd1c5b56-9a1b-40b0-86f9-3127273499ec",
+      "name": "On form submission",
+      "webhookId": "81c88c16-e9b6-42cc-9354-92ab0ef7c6b2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5a18a7e0-f619-4caa-afe3-803ad718e6ea",
+              "leftValue": "={{ $json.leadScore }}",
+              "rightValue": 7,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        -160
+      ],
+      "id": "4332158c-b986-492e-8852-c3a8a0a2438f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#hotleads",
+          "mode": "name"
+        },
+        "text": "=🔥 *NEW PROSPECT ✅*\n*Name:* {{ $json.Name }}\n*Email:* {{ $json.Email }}\n*Company:* {{ $('On form submission').item.json['Company Name:'] }}\n*Company Size:* {{ $('Lead Score').item.json.company_size }}\n*Industry:* {{ $('Lead Score').item.json.company_industry }}\n\n*Lead Score:* {{ $json.leadScore }}\n*Timeline:* {{ $json.Timeline }}\n\n*Message:* {{ $json.Message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        672,
+        -368
+      ],
+      "id": "eb84217c-677a-41f3-8b37-df8a3947ea1a",
+      "name": "Hot Leads",
+      "webhookId": "b5b41c55-9b3e-4d2a-a672-e82d606d7394",
+      "credentials": {
+        "slackApi": {
+          "id": "LfatYoHWOvDaeIE8",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app86ozrkD25eF1nq",
+          "mode": "list",
+          "cachedResultName": "Lead CRM",
+          "cachedResultUrl": "https://airtable.com/app86ozrkD25eF1nq"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl6Rzl6NQhWvszsq",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/app86ozrkD25eF1nq/tbl6Rzl6NQhWvszsq"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json['Name:'] }}",
+            "Email": "={{ $json['Email Address:'] }}",
+            "Company Name": "={{ $('On form submission').item.json['Company Name:'] }}",
+            "Message": "={{ $('Lead Score').item.json.Message }}",
+            "Lead Score": "={{ $('Message AI Analysis').item.json.leadScore }}",
+            "Status": "New",
+            "Timeline": "={{ $('Lead Score').item.json.Timeline }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company Name",
+              "displayName": "Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Timeline",
+              "displayName": "Timeline",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "New",
+                  "value": "New"
+                },
+                {
+                  "name": "Contacted",
+                  "value": "Contacted"
+                },
+                {
+                  "name": "Qualified",
+                  "value": "Qualified"
+                },
+                {
+                  "name": "Closed",
+                  "value": "Closed"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date Received",
+              "displayName": "Date Received",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Attachment",
+              "displayName": "Attachment",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        16
+      ],
+      "id": "b6f9c223-d5db-425a-beb3-b07f03f915b5",
+      "name": "Warm Leads",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qFU0qbXReBtwhBPE",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "900f618a-3d65-4e9e-8f33-1a69f808c14a",
+              "leftValue": "={{ $json.LinkedIn }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e1897f76-01bf-4736-bf84-b2cb2c65366c",
+              "leftValue": "={{ $json.Website }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -496,
+        -176
+      ],
+      "id": "2262375a-25e5-4864-b842-0b975fb10712",
+      "name": "Web Enrichment"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.technologychecker.io/v1/company/{{$json.Website.replace('https://','').replace('http://','').replace('www.','').split('/')[0]}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer tapi_live_kLp6QiCVuAevpgSaOqPb3jAaiNzBRZh9"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -320,
+        -304
+      ],
+      "id": "4b032d21-bb73-4c81-b620-593b2f9bc0ad",
+      "name": "TChecker API"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "56ba2d23-9ca5-45e7-b3c0-da56079d83f9",
+              "name": "Name",
+              "value": "={{ $('Web Enrichment').item.json['Name:'] }}",
+              "type": "string"
+            },
+            {
+              "id": "12dbae5a-53db-4261-ad53-c310918d7fe4",
+              "name": "Email",
+              "value": "={{ $('Web Enrichment').item.json['Email Address:'] }}",
+              "type": "string"
+            },
+            {
+              "id": "79130e1c-f856-4a34-9da6-c67c9cbf98d1",
+              "name": "Timeline",
+              "value": "={{ $('Web Enrichment').item.json.Timeline }}",
+              "type": "string"
+            },
+            {
+              "id": "b3dfda09-83a8-4d3e-90f8-be65d67b065d",
+              "name": "company_industry",
+              "value": "={{ $json.data.industry }}",
+              "type": "string"
+            },
+            {
+              "id": "c5d83006-2caf-4021-99ea-6734b1d01347",
+              "name": "company_size",
+              "value": "={{ $json.data.employees }}",
+              "type": "string"
+            },
+            {
+              "id": "36423af3-2e9f-4358-8731-99657d84d180",
+              "name": "company_location",
+              "value": "={{ $json.data.city }}, {{ $json.data.country }}",
+              "type": "string"
+            },
+            {
+              "id": "7979042e-5a69-40d5-bff1-3fccedaeb971",
+              "name": "company_founded",
+              "value": "={{ $json.data.founded }}",
+              "type": "string"
+            },
+            {
+              "id": "d42e4742-429b-460e-9e44-cad0af0f40e5",
+              "name": "company_type",
+              "value": "={{ $json.data.company_type }}",
+              "type": "string"
+            },
+            {
+              "id": "57f2e5c9-8e12-4084-8e60-52e3332fdca6",
+              "name": "LinkedIn",
+              "value": "={{ $json.data.linkedin_url }}",
+              "type": "string"
+            },
+            {
+              "id": "9a8bd9ee-cf6a-41b7-b769-15ea8a0bcd2d",
+              "name": "Website",
+              "value": "={{ $json.data.domain }}",
+              "type": "string"
+            },
+            {
+              "id": "794d0cf0-824e-46df-b5a8-26224f25d552",
+              "name": "Message",
+              "value": "={{ $('Web Enrichment').item.json.Message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        -304
+      ],
+      "id": "05031bf2-b4e7-4a85-aed6-2c632cd48df4",
+      "name": "Merge Enrichment"
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.first().json.Message || '';\nconst apiKey = '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';\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://openrouter.ai/api/v1/chat/completions',\n  headers: {\n    'Authorization': 'Bearer ' + apiKey,\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    model: 'openai/gpt-oss-120b:free',\n    messages: [\n      {\n        role: 'system',\n        content: 'You are a lead scoring assistant. Return ONLY a single digit 0-3 based on purchase intent. 3=urgent/ready to buy, 2=clear need, 1=interested but vague, 0=just browsing. Nothing else.'\n      },\n      {\n        role: 'user',\n        content: message\n      }\n    ]\n  })\n});\n\nconst data = response;\nconst intentScore = parseInt(data.choices[0].message.content.trim()) || 0;\n\nreturn [{\n  json: {\n    ...$input.first().json,\n    intentScore: intentScore,\n    leadScore: parseInt($input.first().json.leadScore) + intentScore\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -160
+      ],
+      "id": "002a91aa-bcc4-4775-8665-49554546ba48",
+      "name": "Message AI Analysis"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "da23bc8c-1138-42ba-97a6-96675469946c",
+              "name": "=leadScore",
+              "value": "={{\n  ($json.Timeline === 'Immediately' ? 3 : $json.Timeline === '7 days' ? 2 : 0) +\n  ($json.LinkedIn ? 1 : 0) +\n  ($json.Website ? 1 : 0) +\n  ($json.company_size && ($json.company_size.startsWith('1001') || $json.company_size.startsWith('5001') || $json.company_size === '10001+') ? 2 : $json.company_size ? 1 : 0)\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        32,
+        -160
+      ],
+      "id": "c1ec85cb-5418-4a5d-94bf-1482ceec81f0",
+      "name": "Lead Score"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Web Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Hot Leads",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Warm Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Enrichment": {
+      "main": [
+        [
+          {
+            "node": "TChecker API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TChecker API": {
+      "main": [
+        [
+          {
+            "node": "Merge Enrichment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Enrichment": {
+      "main": [
+        [
+          {
+            "node": "Lead Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message AI Analysis": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Score": {
+      "main": [
+        [
+          {
+            "node": "Message AI Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hot Leads": {
+      "main": [
+        []
+      ]
+    },
+    "Warm Leads": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Africa/Nairobi",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "EhkoDGa5SyZ1Ogu1"
+  },
+  "versionId": "f1fa0d92-1aa0-4f20-8da2-be3797618410",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "321d40cee190efa38f50e69097c3577fafec11930aa4d85c7c80d8677d7341c7"
+  },
+  "id": "fIjHEnwgqhOt1Y9k",
+  "tags": []
+}

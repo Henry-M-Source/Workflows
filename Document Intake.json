@@ -1,0 +1,440 @@
+{
+  "name": "Document Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "doc-intake-flow",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -736,
+        -64
+      ],
+      "id": "e1c89d53-de49-47d3-a525-9cb4f95d4954",
+      "name": "Webhook",
+      "webhookId": "089f3745-cc8d-4b94-87ea-3ced0122c2c6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.body.data.fields;\n\nconst fileField = data.find(f => f.type === 'FILE_UPLOAD');\nconst nameField = data.find(f => f.label === 'Full Name');\nconst emailField = data.find(f => f.type === 'INPUT_EMAIL');\nconst docNameField = data.find(f => f.label === 'Document Name');\n\nreturn [{\n  json: {\n    fullName: nameField.value,\n    email: emailField.value,\n    documentName: docNameField.value,\n    fileUrl: fileField.value[0].url,\n    fileName: fileField.value[0].name,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -64
+      ],
+      "id": "13974542-086d-4d9a-9d21-47bff6436d4d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.fileUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -256,
+        -64
+      ],
+      "id": "a93ae722-315c-4f1f-995e-e67291c04915",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://services-dodge-simulation-couple.trycloudflare.com/api/v1/prediction/658b6f26-951e-4f54-b303-2af513d92beb",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "question",
+              "value": "=={{\"Please provide a structured summary:\\n\\n\" + $json.documentText}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        704,
+        -64
+      ],
+      "id": "ac7be08b-64ee-40dc-aabf-cabc77e13c35",
+      "name": "Flowise API"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appVuvi8gAtMQcK7f",
+          "mode": "list",
+          "cachedResultName": "Document Summaries",
+          "cachedResultUrl": "https://airtable.com/appVuvi8gAtMQcK7f"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKoEeuMG4haAxWx",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appVuvi8gAtMQcK7f/tblKoEeuMG4haAxWx"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Summary": "={{ $json.text }}",
+            "Email": "={{ $('Webhook').item.json.body.data.fields[1].value }}",
+            "Document Name": "={{ $('Webhook').item.json.body.data.fields[3].value[0].name }}",
+            "Submitted by": "={{ $('Webhook').item.json.body.data.fields[0].value }}",
+            "Date Received": "={{ $now.toFormat('yyyy-MM-dd') }}",
+            "Status": "Summarised"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Document Name",
+              "displayName": "Document Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Submitted by",
+              "displayName": "Submitted by",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Received",
+                  "value": "Received"
+                },
+                {
+                  "name": "Summarised",
+                  "value": "Summarised"
+                },
+                {
+                  "name": "Actioned",
+                  "value": "Actioned"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date Received",
+              "displayName": "Date Received",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Attachments",
+              "displayName": "Attachments",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Attachment Summary",
+              "displayName": "Attachment Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        -64
+      ],
+      "id": "fb30def8-bc86-4575-80c3-0bea2ac25e1d",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "qFU0qbXReBtwhBPE",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        208,
+        -64
+      ],
+      "id": "fb38125f-33bb-4eef-82af-3275956d69c4",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5575a736-fd5a-4d08-b8b3-a8175921e6b3",
+              "name": "documentText",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -64
+      ],
+      "id": "e3982777-7405-4eb1-8f11-71e1748ade14",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8736f4b3-6344-4b7a-bf04-87405b446c78",
+              "leftValue": "={{$json.data.fileExtension}}",
+              "rightValue": "pdf",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -48,
+        -64
+      ],
+      "id": "d7bd08d9-de4b-4b21-8619-e12734e2ed9c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "henrynjorogey@outlook.com",
+        "toEmail": "={{$('Webhook').item.json.data.fields[2].value}}",
+        "subject": "RESUBMIT YOUR FILE",
+        "emailFormat": "text",
+        "text": "Hello {{$('Webhook').item.json.data.fields[0].value}}, the upload format you used was rejected. Kindly upload in pdf format for your submission to go through.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        176
+      ],
+      "id": "24c211b1-5567-460b-9443-78a3e7338520",
+      "name": "Send an Email",
+      "webhookId": "6e08001e-4f8a-4849-96f3-47a91484954e",
+      "credentials": {
+        "smtp": {
+          "id": "ZXkuFcMJw8tXqQDK",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Flowise API": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Flowise API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Africa/Nairobi",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "EhkoDGa5SyZ1Ogu1"
+  },
+  "versionId": "02569fd4-893f-49fe-9c8f-535aa09ab273",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "321d40cee190efa38f50e69097c3577fafec11930aa4d85c7c80d8677d7341c7"
+  },
+  "id": "VbNodqBT93lCCetk",
+  "tags": []
+}
